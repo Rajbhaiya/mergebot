@@ -68,7 +68,7 @@ async def callback_handler(c: Client, cb: CallbackQuery):
             return
         UPLOAD_TO_DRIVE.update({f"{cb.from_user.id}": True})
         await cb.message.edit(
-            text="Okay I'll upload to drive\nDo you want to rename? Default file name is **[@yashoswalyo]_merged.mkv**",
+            text="Okay I'll upload to drive\nDo you want to rename? Default file name is **merged.mkv**",
             reply_markup=InlineKeyboardMarkup(
                 [
                     [
@@ -164,7 +164,7 @@ async def callback_handler(c: Client, cb: CallbackQuery):
             return
         if "NO" in cb.data:
             new_file_name = (
-                f"downloads/{str(cb.from_user.id)}/[@yashoswalyo]_merged.mkv"
+                f"downloads/{str(cb.from_user.id)}/merged.mkv"
             )
             if user.merge_mode == 1:
                 await mergeNow(c, cb, new_file_name)
