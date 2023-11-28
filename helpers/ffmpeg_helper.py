@@ -64,6 +64,9 @@ import ffmpeg
 import subprocess
 import shutil
 
+
+text_filter = 'drawtext=text="@Hanime_Universe on Telegram":fontsize=24:fontcolor=white:box=1:boxcolor=black@0.5:boxborderw=5:x=(w-text_w)/2:y=h-text_h-10:enable="between(t,0,10)"'
+
 async def MergeSub(filePath: str, subPath: str, user_id):
     """
     This is for Merging Video + Subtitle Together.
@@ -76,49 +79,41 @@ async def MergeSub(filePath: str, subPath: str, user_id):
     returns: Merged Video File Path
     """
     LOGGER.info("Generating mux command")
-    muxcmd = []
-    muxcmd.append("ffmpeg")
-    muxcmd.append("-hide_banner")
-    muxcmd.append("-i")
-    muxcmd.append(filePath)
-    muxcmd.append("-vf")
-    muxcmd.append("drawtext=text='@Hanime_Universe on Telegram':fontsize=24:fontcolor=white:box=1:boxcolor=black@0.5:boxborderw=5:x=(w-text_w)/2:y=(h-text_h)/2:enable='between(t,0,10)'")
-    muxcmd.append("-i")
-    muxcmd.append(subPath)
-    muxcmd.append("-map")
-    muxcmd.append("0:v:0")
-    muxcmd.append("-map")
-    muxcmd.append("0:a:?")
-    muxcmd.append("-map")
-    muxcmd.append("0:s:?")
-    muxcmd.append("-map")
-    muxcmd.append("1:s")
+    muxcmd = [
+        "ffmpeg",
+        "-hide_banner",
+        "-i", filePath,
+        "-vf", text_filter,
+        "-i", subPath,
+        "-map", "0:v:0",
+        "-map", "0:a:?",
+        "-map", "0:s:?",
+        "-map", "1:s",
+        f"-metadata:s:s:{subTrack}",
+        "-c:v", "copy",
+        "-c:a", "copy",
+        "-c:s", "srt",
+        f"./downloads/{str(user_id)}/[@yashoswalyo]_softmuxed_video.mkv"
+    ]
+
     videoData = ffmpeg.probe(filename=filePath)
     videoStreamsData = videoData.get("streams")
     subTrack = 0
     for i in range(len(videoStreamsData)):
         if videoStreamsData[i]["codec_type"] == "subtitle":
             subTrack += 1
-    muxcmd.append(f"-metadata:s:s:{subTrack}")
-    subTrack += 1
+
     subTitle = f"Track {subTrack} - tg-@Hanime_Universe"
     muxcmd.append(f"title={subTitle}")
-    muxcmd.append("-vf")
-    muxcmd.append("drawtext=text='@Hanime_Universe on Telegram':fontsize=24:fontcolor=white:box=1:boxcolor=black@0.5:boxborderw=5:x=(w-text_w)/2:y=(h-text_h)/2:enable='between(t,0,10)'")
-    muxcmd.append("-c:v")
-    muxcmd.append("copy")
-    muxcmd.append("-c:a")
-    muxcmd.append("copy")
-    muxcmd.append("-c:s")
-    muxcmd.append("srt")
-    muxcmd.append(f"./downloads/{str(user_id)}/[@yashoswalyo]_softmuxed_video.mkv")
+
     LOGGER.info("Muxing subtitles")
     subprocess.call(muxcmd)
+    
     orgFilePath = shutil.move(
         f"downloads/{str(user_id)}/[@yashoswalyo]_softmuxed_video.mkv", filePath
     )
+    
     return orgFilePath
-
 
 def MergeSubNew(filePath: str, subPath: str, user_id, file_list):
     """
