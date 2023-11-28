@@ -149,7 +149,7 @@ async def callback_handler(c: Client, cb: CallbackQuery):
                 "Current filename: **[@yashoswalyo]_merged.mkv**\n\nSend me new file name without extension: You have 1 minute"
             )
             res: Message = await c.listen(
-                (cb.message.chat.id,None,None), filters=filters.text, timeout=150
+                (cb.message.chat.id,None), filters=filters.text, timeout=150
             )
             if res.text:
                 new_file_name = f"downloads/{str(cb.from_user.id)}/{res.text}.mkv"
