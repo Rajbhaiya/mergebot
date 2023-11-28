@@ -82,7 +82,7 @@ async def MergeSub(filePath: str, subPath: str, user_id):
     muxcmd.append("-i")
     muxcmd.append(filePath)
     muxcmd.append("-vf")
-    muxcmd.append("drawtext=text='Telegram - @Hanime_Universe':fontsize=24:fontcolor=white:box=1:boxcolor=black@0.5:boxborderw=5:x=(w-text_w)/2:y=(h-text_h)/2")
+    muxcmd.append("drawtext=text='@Hanime_Universe on Telegram':fontsize=24:fontcolor=white:box=1:boxcolor=black@0.5:boxborderw=5:x=(w-text_w)/2:y=(h-text_h)/2:enable='between(t,0,10)'")
     muxcmd.append("-i")
     muxcmd.append(subPath)
     muxcmd.append("-map")
@@ -103,6 +103,8 @@ async def MergeSub(filePath: str, subPath: str, user_id):
     subTrack += 1
     subTitle = f"Track {subTrack} - tg-@Hanime_Universe"
     muxcmd.append(f"title={subTitle}")
+    muxcmd.append("-vf")
+    muxcmd.append("drawtext=text='@Hanime_Universe on Telegram':fontsize=24:fontcolor=white:box=1:boxcolor=black@0.5:boxborderw=5:x=(w-text_w)/2:y=(h-text_h)/2:enable='between(t,0,10)'")
     muxcmd.append("-c:v")
     muxcmd.append("copy")
     muxcmd.append("-c:a")
