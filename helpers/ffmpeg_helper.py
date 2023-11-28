@@ -20,7 +20,7 @@ async def MergeVideo(input_file: str, user_id: int, message: Message, format_: s
     :param `format_`: Pass File Extension.
     :return: This will return Merged Video File Path
     """
-    output_vid = f"downloads/{str(user_id)}/[@Hanime_Universe].{format_.lower()}"
+    output_vid = f"downloads/{str(user_id)}/[@yashoswalyo].{format_.lower()}"
     file_generator_command = [
         "ffmpeg",
         "-f",
@@ -60,14 +60,18 @@ async def MergeVideo(input_file: str, user_id: int, message: Message, format_: s
         return None
 
 
+import ffmpeg
+import subprocess
+import shutil
+
 async def MergeSub(filePath: str, subPath: str, user_id):
     """
     This is for Merging Video + Subtitle Together.
 
     Parameters:
     - `filePath`: Path to Video file.
-    - `subPath`: Path to subtitile file.
-    - `user_id`: To get parent directory.
+    - `subPath`: Path to subtitle file.
+    - `user_id`: To get the parent directory.
 
     returns: Merged Video File Path
     """
@@ -77,6 +81,8 @@ async def MergeSub(filePath: str, subPath: str, user_id):
     muxcmd.append("-hide_banner")
     muxcmd.append("-i")
     muxcmd.append(filePath)
+    muxcmd.append("-vf")
+    muxcmd.append("drawtext=text='Telegram - @Hanime_Universe':fontsize=24:fontcolor=white:box=1:boxcolor=black@0.5:boxborderw=5:x=(w-text_w)/2:y=(h-text_h)/2")
     muxcmd.append("-i")
     muxcmd.append(subPath)
     muxcmd.append("-map")
@@ -103,11 +109,11 @@ async def MergeSub(filePath: str, subPath: str, user_id):
     muxcmd.append("copy")
     muxcmd.append("-c:s")
     muxcmd.append("srt")
-    muxcmd.append(f"./downloads/{str(user_id)}/[@Hanime_Universe]_softmuxed_video.mkv")
+    muxcmd.append(f"./downloads/{str(user_id)}/[@yashoswalyo]_softmuxed_video.mkv")
     LOGGER.info("Muxing subtitles")
     subprocess.call(muxcmd)
     orgFilePath = shutil.move(
-        f"downloads/{str(user_id)}/[@Hanime_Universe]_softmuxed_video.mkv", filePath
+        f"downloads/{str(user_id)}/[@yashoswalyo]_softmuxed_video.mkv", filePath
     )
     return orgFilePath
 
@@ -155,10 +161,10 @@ def MergeSubNew(filePath: str, subPath: str, user_id, file_list):
     muxcmd.append("copy")
     muxcmd.append("-c:s")
     muxcmd.append("srt")
-    muxcmd.append(f"./downloads/{str(user_id)}/[@Hanime_Universe]_softmuxed_video.mkv")
+    muxcmd.append(f"./downloads/{str(user_id)}/[@yashoswalyo]_softmuxed_video.mkv")
     LOGGER.info("Sub muxing")
     subprocess.call(muxcmd)
-    return f"downloads/{str(user_id)}/[@Hanime_Universe]_softmuxed_video.mkv"
+    return f"downloads/{str(user_id)}/[@yashoswalyo]_softmuxed_video.mkv"
 
 
 def MergeAudio(videoPath: str, files_list: list, user_id):
@@ -199,12 +205,12 @@ def MergeAudio(videoPath: str, files_list: list, user_id):
     muxcmd.append("copy")
     muxcmd.append("-c:s")
     muxcmd.append("copy")
-    muxcmd.append(f"downloads/{str(user_id)}/[@Hanime_Universe]_export.mkv")
+    muxcmd.append(f"downloads/{str(user_id)}/[@yashoswalyo]_export.mkv")
 
     LOGGER.info(muxcmd)
     process = subprocess.call(muxcmd)
     LOGGER.info(process)
-    return f"downloads/{str(user_id)}/[@Hanime_Universe]_export.mkv"
+    return f"downloads/{str(user_id)}/[@yashoswalyo]_export.mkv"
 
 
 async def cult_small_video(video_file, output_directory, start_time, end_time, format_):
