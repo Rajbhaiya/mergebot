@@ -10,10 +10,11 @@ RUN apt-get -y update && apt-get -y upgrade && apt-get install apt-utils -y && \
 
 # RUN curl https://rclone.org/install.sh | bash
 
-COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN git clone https://github.com/Rajbhaiya/mergebot/ mergebot
 
-COPY . .
+WORKDIR mergebot
+
+RUN pip3 install --no-cache-dir -r requirements.txt
 
 RUN chmod +x start.sh
 
