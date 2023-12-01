@@ -1,6 +1,5 @@
 import asyncio
 import os
-import pyromod.listen
 
 from bot import (
     LOGGER,
