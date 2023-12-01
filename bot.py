@@ -8,6 +8,7 @@ import asyncio
 import os
 import shutil
 import time
+import pyromod.listen
 
 import psutil
 import pyromod
