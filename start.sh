@@ -1,4 +1,4 @@
-echo "Started"
-git pull -f -q
-pip install --no-cache-dir -r requirements.txt
+echo "Started..."
+git pull
+pip install --quiet -U -r requirements.txt
 python3 bot.py
