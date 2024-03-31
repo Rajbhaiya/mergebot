@@ -127,21 +127,32 @@ def split_video(input_file, max_size):
     num_parts = int(input_size + max_size - 1 // max_size)
     part_size = input_size // num_parts
 
+    subtitle_file = extract_subtitle(input_file)
+
     parts = []
     for i in range(num_parts):
         start_byte = i * part_size
         part_file = f"{input_file}_{i+1}.mp4"
         cmd = [
-            "ffmpeg", "-i", input_file, "-c", "copy",
+            "ffmpeg", "-i", input_file, "-i", subtitle_file, "-c", "copy",
             "-avoid_negative_ts", "make_zero", "-start_at_zero",
             "-copyts", "-y", "-nostats",
             "-ss", str(start_byte), "-fs", str(part_size),
+            "-map", "0:v:0", "-map", "1:s:0",
             part_file
         ]
         subprocess.run(cmd)
         parts.append(part_file)
 
     return parts
+
+def extract_subtitle(video_file):
+    subtitle_file = f"{video_file}.srt"
+    cmd = [
+        "ffmpeg", "-i", video_file, "-map", "0:s:0", subtitle_file
+    ]
+    subprocess.run(cmd)
+    return subtitle_file
 
 async def uploadFiles(
     c: Client,
