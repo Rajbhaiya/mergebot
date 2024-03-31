@@ -132,19 +132,28 @@ def split_video(input_file, max_size):
     # Calculate the number of parts based on the max size
     num_parts = math.ceil(input_size / max_size)
 
-    # Calculate the size of each part (approximately equal)
-    part_size = math.ceil(input_size / num_parts)
+    # Calculate the duration of each part (approximately equal)
+    video_info_cmd = [
+        "ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", input_file
+    ]
+    result = subprocess.run(video_info_cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        return None
+
+    duration = float(result.stdout.strip())
+    part_duration = duration / num_parts
 
     # Split the video into parts
     parts = []
     for i in range(num_parts):
         part_file = f"{file_name}_part{i + 1}.mp4"
-        start_byte = i * part_size
+        start_time = i * part_duration
+        end_time = min((i + 1) * part_duration, duration)
         cmd = [
             "ffmpeg", "-i", input_file, "-c", "copy",
             "-avoid_negative_ts", "make_zero", "-start_at_zero",
             "-copyts", "-y", "-nostats",
-            "-ss", str(start_byte), "-fs", str(part_size),
+            "-ss", str(start_time), "-to", str(end_time),
         ]
         if subtitle_file:
             cmd.extend(["-c:s", "mov_text", "-attach", subtitle_file])
