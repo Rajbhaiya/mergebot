@@ -117,6 +117,7 @@ async def upload_part(c, cb, part_path, width, height, duration, video_thumbnail
                     chat_id=int(LOGCHANNEL),
                     caption=f"`{media.file_name}`\n\nMerged for: <a href='tg://user?id={cb.from_user.id}'>{cb.from_user.first_name}</a>",
                 )
+    os.remove(part_path)
                 
 def split_video(video_path, max_size_bytes):
     """
