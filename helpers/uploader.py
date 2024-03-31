@@ -124,7 +124,7 @@ def split_video(input_file, max_size):
     if input_size <= max_size:
         return [input_file]
 
-    num_parts = int(input_size + max_size - 1) // max_size
+    num_parts = int(input_size + max_size - 1 // max_size)
     part_size = input_size // num_parts
 
     parts = []
