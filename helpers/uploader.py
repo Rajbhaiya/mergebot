@@ -118,12 +118,13 @@ async def upload_part(c, cb, part_path, width, height, duration, video_thumbnail
                     caption=f"`{media.file_name}`\n\nMerged for: <a href='tg://user?id={cb.from_user.id}'>{cb.from_user.first_name}</a>",
                 )
                 
-def split_video(video_path, max_size_bytes):
+def split_video(video_path, sub_path, max_size_bytes):
     """
-    Split a video into multiple parts of equal size, with each part being less than the specified maximum size (in bytes).
+    Split a video into multiple parts of equal size, including the subtitle track, with each part being less than the specified maximum size (in bytes).
 
     Args:
         video_path (str): The path to the input video file.
+        sub_path (str): The path to the subtitle file.
         max_size_bytes (int): The maximum size (in bytes) for each split video part.
 
     Returns:
@@ -134,11 +135,9 @@ def split_video(video_path, max_size_bytes):
     # Calculate the number of parts needed
     num_parts = math.ceil(video_size_bytes / max_size_bytes)
 
-    # Get the video duration and bitrate
-    probe = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration,bit_rate", "-of", "default=noprint_wrappers=1:nokey=1", video_path], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-    duration, bit_rate = probe.stdout.strip().split("\n")
-    duration = float(duration)
-    bit_rate = int(bit_rate)
+    # Get the video duration
+    probe = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", video_path], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+    duration = float(probe.stdout.strip())
 
     # Calculate the duration of each part
     part_duration = duration / num_parts
@@ -152,7 +151,7 @@ def split_video(video_path, max_size_bytes):
         part_filename = f"part_{i+1}.mp4"
 
         # Split the video using FFmpeg and copy existing subtitles
-        subprocess.run(["ffmpeg", "-i", video_path, "-ss", str(start_time), "-t", str(end_time - start_time), "-c", "copy", "-bsf:a", "aac_adtstoasc", "-map", "0", "-map", "-0:s", part_filename])
+        subprocess.run(["ffmpeg", "-i", video_path, "-ss", str(start_time), "-t", str(end_time - start_time), "-c", "copy", "-c:s", "mov_text", "-map", "0", "-map", "0:s?", part_filename])
 
         parts.append(part_filename)
 
