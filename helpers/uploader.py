@@ -118,51 +118,46 @@ async def upload_part(c, cb, part_path, width, height, duration, video_thumbnail
                     caption=f"`{media.file_name}`\n\nMerged for: <a href='tg://user?id={cb.from_user.id}'>{cb.from_user.first_name}</a>",
                 )
                 
-def get_video_duration(video_file):
-    result = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", video_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if result.returncode == 0:
-        return float(result.stdout)
-    return None
+def split_video(video_path, max_size_bytes):
+    """
+    Split a video into multiple parts of equal size, with each part being less than the specified maximum size (in bytes).
 
-def split_video(input_file, max_size):
-    input_size = os.path.getsize(input_file)
-    if input_size <= max_size:
-        return [input_file]
+    Args:
+        video_path (str): The path to the input video file.
+        max_size_bytes (int): The maximum size (in bytes) for each split video part.
 
-    file_name = os.path.splitext(os.path.basename(input_file))[0]
+    Returns:
+        list: A list of paths to the split video parts.
+    """
+    # Calculate the size of the video in bytes
+    video_size_bytes = os.path.getsize(video_path)
 
-    # Calculate the number of parts based on the max size
-    num_parts = math.ceil(input_size / max_size)
+    # Calculate the number of parts needed
+    num_parts = math.ceil(video_size_bytes / max_size_bytes)
 
-    # Calculate the size of each part (approximately equal)
-    part_size = input_size / num_parts
+    # Get the video duration and bitrate
+    probe = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration,bit_rate", "-of", "default=noprint_wrappers=1:nokey=1", video_path], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+    duration, bit_rate = probe.stdout.strip().split("\n")
+    duration = float(duration)
+    bit_rate = int(bit_rate)
 
-    # Split the video into parts
+    # Calculate the duration of each part
+    part_duration = duration / num_parts
+
     parts = []
     for i in range(num_parts):
-        part_file = f"{file_name}_part{i + 1}.mp4"
-        start_byte = i * part_size
-        cmd = [
-            "ffmpeg", "-i", input_file, "-c", "copy",
-            "-avoid_negative_ts", "make_zero", "-start_at_zero",
-            "-copyts", "-y", "-nostats",
-            "-ss", str(start_byte), "-fs", str(max_size),
-            part_file
-        ]
-        subprocess.run(cmd)
+        start_time = i * part_duration
+        end_time = min((i + 1) * part_duration, duration)
 
-        parts.append(part_file)
+        # Generate the output filename
+        part_filename = f"part_{i+1}.mp4"
+
+        # Split the video using FFmpeg
+        subprocess.run(["ffmpeg", "-i", video_path, "-ss", str(start_time), "-t", str(end_time - start_time), "-c", "copy", "-bsf:a", "aac_adtstoasc", part_filename])
+
+        parts.append(part_filename)
 
     return parts
-def extract_subtitle(video_file):
-    subtitle_file = f"{video_file}.srt"
-    cmd = [
-        "ffmpeg", "-i", video_file, "-map", "0:s:0", subtitle_file
-    ]
-    result = subprocess.run(cmd)
-    if result.returncode != 0 or not os.path.exists(subtitle_file):
-        return None
-    return subtitle_file
 
 async def uploadFiles(
     c: Client,
