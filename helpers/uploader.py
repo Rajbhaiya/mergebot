@@ -156,7 +156,7 @@ def split_video(input_file, max_size):
             "-ss", str(start_time), "-to", str(end_time),
         ]
         if subtitle_file:
-            cmd.extend(["-c:s", "mov_text", "-attach", subtitle_file])
+            cmd.extend(["-scodec", "mov_text", "-map", "0:s:0"])
         cmd.append(part_file)
 
         subprocess.run(cmd)
