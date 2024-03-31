@@ -30,6 +30,8 @@ async def uploadVideo(
             part_name = f"part{i:03d}.mp4"
             os.rename(part_path, os.path.join(os.path.dirname(part_path), part_name))
             await upload_part(c, cb, os.path.join(os.path.dirname(part_path), part_name), width, height, duration, video_thumbnail, upload_mode)
+            # Optionally, you can delete the temporary part file after uploading
+            os.remove(os.path.join(os.path.dirname(part_path), part_name))
     else:
         await upload_part(c, cb, merged_video_path, width, height, duration, video_thumbnail, upload_mode)
 
@@ -124,34 +126,57 @@ def split_video(input_file, max_size):
     if input_size <= max_size:
         return [input_file]
 
-    num_parts = int(input_size + max_size - 1 // max_size)
-    part_size = input_size // num_parts
-
     subtitle_file = extract_subtitle(input_file)
+    if subtitle_file is None:
+        return None
 
-    parts = []
-    for i in range(num_parts):
-        start_byte = i * part_size
-        part_file = f"{input_file}_{i+1}.mp4"
-        cmd = [
-            "ffmpeg", "-i", input_file, "-i", subtitle_file, "-c", "copy",
-            "-avoid_negative_ts", "make_zero", "-start_at_zero",
-            "-copyts", "-y", "-nostats",
-            "-ss", str(start_byte), "-fs", str(part_size),
-            "-map", "0:v:0", "-map", "1:s:0",
-            part_file
-        ]
-        subprocess.run(cmd)
-        parts.append(part_file)
+    # Calculate the size of the first part (1.95 GB or the max size)
+    part_size_1 = max_size
 
-    return parts
+    # Calculate the size of the second part
+    part_size_2 = input_size - part_size_1
+
+    # Split the video into two parts
+    part_file_1 = f"{input_file}_part1.mp4"
+    part_file_2 = f"{input_file}_part2.mp4"
+
+    cmd_part_1 = [
+        "ffmpeg", "-i", input_file, "-c", "copy",
+        "-avoid_negative_ts", "make_zero", "-start_at_zero",
+        "-copyts", "-y", "-nostats",
+        "-fs", str(part_size_1),
+    ]
+    if subtitle_file:
+        cmd_part_1.extend(["-c:s", "mov_text", "-attach", subtitle_file])
+    cmd_part_1.append(part_file_1)
+
+    subprocess.run(cmd_part_1)
+
+    cmd_part_2 = [
+        "ffmpeg", "-i", input_file, "-c", "copy",
+        "-avoid_negative_ts", "make_zero", "-start_at_zero",
+        "-copyts", "-y", "-nostats",
+        "-ss", str(part_size_1), "-fs", str(part_size_2),
+    ]
+    if subtitle_file:
+        cmd_part_2.extend(["-c:s", "mov_text", "-attach", subtitle_file])
+    cmd_part_2.append(part_file_2)
+
+    subprocess.run(cmd_part_2)
+
+    # Clean up temporary subtitle file
+    os.remove(subtitle_file)
+
+    return [part_file_1, part_file_2]
 
 def extract_subtitle(video_file):
     subtitle_file = f"{video_file}.srt"
     cmd = [
         "ffmpeg", "-i", video_file, "-map", "0:s:0", subtitle_file
     ]
-    subprocess.run(cmd)
+    result = subprocess.run(cmd)
+    if result.returncode != 0 or not os.path.exists(subtitle_file):
+        return None
     return subtitle_file
 
 async def uploadFiles(
