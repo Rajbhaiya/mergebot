@@ -118,13 +118,12 @@ async def upload_part(c, cb, part_path, width, height, duration, video_thumbnail
                     caption=f"`{media.file_name}`\n\nMerged for: <a href='tg://user?id={cb.from_user.id}'>{cb.from_user.first_name}</a>",
                 )
                 
-def split_video(video_path, sub_path, max_size):
+def split_video(video_path, max_size_bytes):
     """
     Split a video into multiple parts of equal size, including the subtitle track, with each part being less than the specified maximum size (in bytes).
 
     Args:
         video_path (str): The path to the input video file.
-        sub_path (str): The path to the subtitle file.
         max_size_bytes (int): The maximum size (in bytes) for each split video part.
 
     Returns:
@@ -133,7 +132,7 @@ def split_video(video_path, sub_path, max_size):
     video_size_bytes = os.path.getsize(video_path)
 
     # Calculate the number of parts needed
-    num_parts = math.ceil(video_size_bytes / max_size)
+    num_parts = math.ceil(video_size_bytes / max_size_bytes)
 
     # Get the video duration
     probe = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", video_path], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
