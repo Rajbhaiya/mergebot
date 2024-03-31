@@ -129,7 +129,6 @@ def split_video(video_path, max_size_bytes):
     Returns:
         list: A list of paths to the split video parts.
     """
-    # Calculate the size of the video in bytes
     video_size_bytes = os.path.getsize(video_path)
 
     # Calculate the number of parts needed
@@ -152,8 +151,8 @@ def split_video(video_path, max_size_bytes):
         # Generate the output filename
         part_filename = f"part_{i+1}.mp4"
 
-        # Split the video using FFmpeg
-        subprocess.run(["ffmpeg", "-i", video_path, "-ss", str(start_time), "-t", str(end_time - start_time), "-c", "copy", "-bsf:a", "aac_adtstoasc", part_filename])
+        # Split the video using FFmpeg and copy existing subtitles
+        subprocess.run(["ffmpeg", "-i", video_path, "-ss", str(start_time), "-t", str(end_time - start_time), "-c", "copy", "-bsf:a", "aac_adtstoasc", "-map", "0", "-map", "-0:s", part_filename])
 
         parts.append(part_filename)
 
