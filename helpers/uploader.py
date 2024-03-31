@@ -135,7 +135,7 @@ def split_video(input_file, max_size):
     num_parts = math.ceil(input_size / max_size)
 
     # Calculate the size of each part (approximately equal)
-    part_size = math.ceil(input_size / num_parts)
+    part_size = input_size / num_parts
 
     # Split the video into parts
     parts = []
@@ -146,7 +146,7 @@ def split_video(input_file, max_size):
             "ffmpeg", "-i", input_file, "-c", "copy",
             "-avoid_negative_ts", "make_zero", "-start_at_zero",
             "-copyts", "-y", "-nostats",
-            "-ss", str(start_byte), "-fs", str(part_size),
+            "-ss", str(start_byte), "-fs", str(max_size),
             part_file
         ]
         subprocess.run(cmd)
