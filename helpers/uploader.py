@@ -118,47 +118,45 @@ async def upload_part(c, cb, part_path, width, height, duration, video_thumbnail
                     caption=f"`{media.file_name}`\n\nMerged for: <a href='tg://user?id={cb.from_user.id}'>{cb.from_user.first_name}</a>",
                 )
                 
-def split_video(input_file, max_size):
-    input_size = os.path.getsize(input_file)
-    if input_size <= max_size:
-        return [input_file]
+def get_video_duration(video_file):
+    result = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", video_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if result.returncode == 0:
+        return float(result.stdout)
+    return None
 
-    subtitle_file = extract_subtitle(input_file)
-    if subtitle_file is None:
+def split_video(input_file, max_duration):
+    video_duration = get_video_duration(input_file)
+    if video_duration is None:
         return None
+
+    if video_duration <= max_duration:
+        return [input_file]
 
     file_name = os.path.splitext(os.path.basename(input_file))[0]
 
-    # Calculate the number of parts based on the max size
-    num_parts = math.ceil(input_size / max_size)
+    # Calculate the number of parts based on the max duration
+    num_parts = math.ceil(video_duration / max_duration)
 
-    # Calculate the size of each part (approximately equal)
-    part_size = math.ceil(input_size / num_parts)
+    # Calculate the duration of each part (approximately equal)
+    part_duration = video_duration / num_parts
 
     # Split the video into parts
     parts = []
     for i in range(num_parts):
         part_file = f"{file_name}_part{i + 1}.mp4"
-        start_byte = i * part_size
+        start_time = i * part_duration
         cmd = [
             "ffmpeg", "-i", input_file, "-c", "copy",
+            "-ss", str(start_time), "-t", str(part_duration),
             "-avoid_negative_ts", "make_zero", "-start_at_zero",
             "-copyts", "-y", "-nostats",
-            "-ss", str(start_byte), "-fs", str(part_size),
+            part_file
         ]
-        if subtitle_file:
-            cmd.extend(["-c:s", "mov_text", "-attach", subtitle_file])
-        cmd.append(part_file)
-
         subprocess.run(cmd)
 
         parts.append(part_file)
 
-    # Clean up temporary subtitle file
-    os.remove(subtitle_file)
-
     return parts
-
 def extract_subtitle(video_file):
     subtitle_file = f"{video_file}.srt"
     cmd = [
