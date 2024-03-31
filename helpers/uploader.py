@@ -129,7 +129,7 @@ def split_video(input_file, max_size):
 
     parts = []
     for i in range(num_parts):
-        part_file = f"{input_file}_{i+1}.mp4"
+        part_file = f"{input_file.rsplit('.', 1)[0]}_{i+1}.mp4"
         start_byte = i * part_size
         cmd = [
             "ffmpeg", "-i", input_file, "-c", "copy",
