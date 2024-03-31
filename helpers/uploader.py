@@ -24,7 +24,7 @@ async def uploadVideo(
 ):
     # Split video based on Config.IS_PREMIUM
     max_size = 3.95 * 1024 * 1024 * 1024 if Config.IS_PREMIUM else 1.95 * 1024 * 1024 * 1024
-    if os.path.getsize(merged_video_path) > max_size or not upload_mode:
+    if os.path.getsize(merged_video_path) > max_size:
         parts = split_video(merged_video_path, max_size)
         for i, part_path in enumerate(parts, start=1):
             part_name = f"part{i:03d}.mp4"
@@ -54,6 +54,27 @@ async def upload_part(c, cb, part_path, width, height, duration, video_thumbnail
                         c_time,
                     ),
                 )
+            else:
+                c_time = time.time()
+                sent_: Message = await userBot.send_document(
+                    chat_id=int(LOGCHANNEL),
+                    document=merged_video_path,
+                    thumb=video_thumbnail,
+                    caption=f"`{merged_video_path.rsplit('/',1)[-1]}`\n\nMerged for: <a href='tg://user?id={cb.from_user.id}'>{cb.from_user.first_name}</a>",
+                    progress=prog.progress_for_pyrogram,
+                    progress_args=(
+                        f"Uploading: `{merged_video_path.rsplit('/',1)[-1]}`",
+                        c_time,
+                    ),
+                )
+            if sent_ is not None:
+                await c.copy_message(
+                    chat_id=cb.message.chat.id,
+                    from_chat_id=sent_.chat.id,
+                    message_id=sent_.id,
+                    caption=f"`{merged_video_path.rsplit('/',1)[-1]}`",
+                )
+                # await sent_.delete()
     else:
         try:
             sent_ = None
@@ -62,15 +83,15 @@ async def upload_part(c, cb, part_path, width, height, duration, video_thumbnail
                 c_time = time.time()
                 sent_: Message = await c.send_video(
                     chat_id=cb.message.chat.id,
-                    video=part_path,
+                    video=merged_video_path,
                     height=height,
                     width=width,
                     duration=duration,
                     thumb=video_thumbnail,
-                    caption=f"`{part_path.rsplit('/',1)[-1]}`",
+                    caption=f"`{merged_video_path.rsplit('/',1)[-1]}`",
                     progress=prog.progress_for_pyrogram,
                     progress_args=(
-                        f"Uploading: `{part_path.rsplit('/',1)[-1]}`",
+                        f"Uploading: `{merged_video_path.rsplit('/',1)[-1]}`",
                         c_time,
                     ),
                 )
@@ -78,12 +99,12 @@ async def upload_part(c, cb, part_path, width, height, duration, video_thumbnail
                 c_time = time.time()
                 sent_: Message = await c.send_document(
                     chat_id=cb.message.chat.id,
-                    document=part_path,
+                    document=merged_video_path,
                     thumb=video_thumbnail,
-                    caption=f"`{part_path.rsplit('/',1)[-1]}`",
+                    caption=f"`{merged_video_path.rsplit('/',1)[-1]}`",
                     progress=prog.progress_for_pyrogram,
                     progress_args=(
-                        f"Uploading: `{part_path.rsplit('/',1)[-1]}`",
+                        f"Uploading: `{merged_video_path.rsplit('/',1)[-1]}`",
                         c_time,
                     ),
                 )
@@ -97,7 +118,7 @@ async def upload_part(c, cb, part_path, width, height, duration, video_thumbnail
                     chat_id=int(LOGCHANNEL),
                     caption=f"`{media.file_name}`\n\nMerged for: <a href='tg://user?id={cb.from_user.id}'>{cb.from_user.first_name}</a>",
                 )
-
+                
 def split_video(input_file, max_size):
     input_size = os.path.getsize(input_file)
     if input_size <= max_size:
