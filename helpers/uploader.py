@@ -29,7 +29,7 @@ async def uploadVideo(
         for i, part_path in enumerate(parts, start=1):
             part_name = f"part{i:03d}.mp4"
             os.rename(part_path, os.path.join(os.path.dirname(part_path), part_name))
-            await upload_part(c, cb, part_path, width, height, duration, video_thumbnail, upload_mode)
+            await upload_part(c, cb, os.path.join(os.path.dirname(part_path), part_name), width, height, duration, video_thumbnail, upload_mode)
     else:
         await upload_part(c, cb, merged_video_path, width, height, duration, video_thumbnail, upload_mode)
 
