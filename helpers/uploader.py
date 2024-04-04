@@ -4,6 +4,9 @@ import asyncio
 import time
 import math
 
+from hachoir.metadata import extractMetadata
+from hachoir.parser import createParser
+
 from __init__ import LOGGER
 from bot import LOGCHANNEL, userBot
 from config import Config
@@ -33,9 +36,14 @@ async def uploadVideo(
                 metadata = extractMetadata(createParser(part_path))
                 if metadata.has("duration"):
                     duration = metadata.get("duration").seconds
-            await upload_part(c, cb, part_path, width, height, duration, video_thumbnail, upload_mode)
+                await upload_part(c, cb, part_path, width, height, duration, video_thumbnail, upload_mode)
+            except Exception as e:
+                LOGGER.error(f"Failed to upload part: {e}")
     else:
-        await upload_part(c, cb, merged_video_path, width, height, duration, video_thumbnail, upload_mode)
+        try:
+            await upload_part(c, cb, merged_video_path, width, height, duration, video_thumbnail, upload_mode)
+        except Exception as e:
+            LOGGER.error(f"Failed to upload part: {e}")
 
 async def upload_part(c, cb, part_path, width, height, duration, video_thumbnail, upload_mode):
     if Config.IS_PREMIUM:
