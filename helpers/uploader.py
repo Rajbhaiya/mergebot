@@ -28,6 +28,11 @@ async def uploadVideo(
     if os.path.getsize(merged_video_path) > max_size:
         parts = split_video(merged_video_path, max_size)
         for part_path in parts:
+            duration = 1
+            try:
+                metadata = extractMetadata(createParser(part_path))
+                if metadata.has("duration"):
+                    duration = metadata.get("duration").seconds
             await upload_part(c, cb, part_path, width, height, duration, video_thumbnail, upload_mode)
     else:
         await upload_part(c, cb, merged_video_path, width, height, duration, video_thumbnail, upload_mode)
