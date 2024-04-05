@@ -155,13 +155,15 @@ def split_video(video_path, max_size_bytes):
     # Calculate the duration of each part
     part_duration = duration / num_parts
 
+    base_filename = os.path.splitext(os.path.basename(video_path))[0]
+
     parts = []
     for i in range(num_parts):
         start_time = i * part_duration
         end_time = min((i + 1) * part_duration, duration)
 
         # Generate the output filename
-        part_filename = f"part_{i+1}.mp4"
+        part_filename = f"{base_filename} part_{i+1}.mp4"
 
         # Split the video using FFmpeg and copy existing subtitles
         subprocess.run(["ffmpeg", "-i", video_path, "-ss", str(start_time), "-t", str(end_time - start_time), "-c", "copy", "-c:s", "mov_text", "-map", "0", "-map", "0:s?", part_filename])
