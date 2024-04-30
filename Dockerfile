@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM python:3.11
 
 WORKDIR /usr/src/mergebot
 RUN chmod 777 /usr/src/mergebot
@@ -14,7 +14,7 @@ RUN git clone https://github.com/Rajbhaiya/mergebot/ mergebot
 
 WORKDIR mergebot
 
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 RUN chmod +x start.sh
 
