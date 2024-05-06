@@ -111,7 +111,7 @@ async def MergeSub(filePath: str, subPath: str, user_id):
 
     return orgFilePath
 
-def MergeSubNew(filePath: str, subPath: str, user_id, file_list):
+async def MergeSubNew(filePath: str, subPath: str, user_id, file_list):
     """
     This method is for Merging Video + Subtitle(s) Together.
     Parameters:
