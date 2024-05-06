@@ -84,7 +84,7 @@ async def mergeSub(c: Client, cb: CallbackQuery, new_file_name: str):
             continue
         vid_list.append(f"{file_dl_path}")
 
-    subbed_video = MergeSubNew(
+    subbed_video = await MergeSubNew(
         filePath=vid_list[0],
         subPath=vid_list[1],
         user_id=cb.from_user.id,
