@@ -134,7 +134,7 @@ async def MergeSubNew(filePath: str, subPath: str, user_id, file_list):
     for i in file_list:
         muxcmd.append("-i")
         muxcmd.append(i)
-    text_filter = 'drawtext=text="@Hanime_Universe on Telegram":fontsize=24:fontcolor=white:box=1:boxcolor=black@0.5:boxborderw=5:x=(w-text_w)/2:y=h-text_h-10:enable="between(t,0,10)"'
+    text_filter = "drawtext=text='@Hanime_Universe on teligram':fontsize=25:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/-12:enable='between(t,0,10)'"
     filtergraph = f"[0:v]subtitles={subPath}:force_style='Fontsize=24,PrimaryColour=&Hffffff,BorderStyle=1,Outline=0,Shadow=0' [v];[v]{text_filter}[outv]"
     muxcmd.extend([
         "-filter_complex", filtergraph,
