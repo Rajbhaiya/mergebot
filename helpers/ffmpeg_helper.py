@@ -121,7 +121,7 @@ def MergeSubNew(filePath: str, subPath: str, user_id, file_list):
     - `file_list`: List of all input files
     returns: Merged Video File Path
     """
-    logging.info("Generating mux command")
+    LOGGER.info("Generating mux command")
     text_filter = 'drawtext=text="@Hanime_Universe on Telegram":fontsize=24:fontcolor=white:box=1:boxcolor=black@0.5:boxborderw=5:x=(w-text_w)/2:y=h-text_h-10:enable="between(t,0,10)"'
     muxcmd = [
         "ffmpeg", "-hide_banner",
