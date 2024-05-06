@@ -114,14 +114,16 @@ async def MergeSub(filePath: str, subPath: str, user_id):
     )
     return orgFilePath
 
-async def MergeSubNew(filePath: str, subPath: str, user_id, file_list):
+def MergeSubNew(filePath: str, subPath: str, user_id, file_list):
     """
     This method is for Merging Video + Subtitle(s) Together.
+
     Parameters:
     - `filePath`: Path to Video file.
-    - `subPath`: Path to subtitle file.
+    - `subPath`: Path to subtitile file.
     - `user_id`: To get parent directory.
     - `file_list`: List of all input files
+
     returns: Merged Video File Path
     """
     LOGGER.info("Generating mux command")
@@ -137,26 +139,25 @@ async def MergeSubNew(filePath: str, subPath: str, user_id, file_list):
     for i in file_list:
         muxcmd.append("-i")
         muxcmd.append(i)
-    text_filter = "drawtext=text='@Hanime_Universe on teligram':fontsize=25:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/-12:enable='between(t,0,10)'"
-    filtergraph = f"[0:v]subtitles={subPath}:force_style='Fontsize=24,PrimaryColour=&Hffffff,BorderStyle=1,Outline=0,Shadow=0' [v];[v]{text_filter}[outv]"
-    muxcmd.extend([
-        "-filter_complex", filtergraph,
-        "-map", "[outv]",
-        "-map", "0:a:?",
-        "-map", "0:s:?"
-    ])
+    muxcmd.append("-map")
+    muxcmd.append("0:v:0")
+    muxcmd.append("-map")
+    muxcmd.append("0:a:?")
+    muxcmd.append("-map")
+    muxcmd.append("0:s:?")
     for j in range(1, (len(file_list))):
         muxcmd.append("-map")
         muxcmd.append(f"{j}:s")
         muxcmd.append(f"-metadata:s:s:{subTrack}")
         muxcmd.append(f"title=Track {subTrack+1} - tg-@hanime_universe")
         subTrack += 1
-    muxcmd.extend([
-        "-c:v", "copy",
-        "-c:a", "copy",
-        "-c:s", "srt",
-        f"./downloads/{str(user_id)}/[@yashoswalyo]_softmuxed_video.mkv"
-    ])
+    muxcmd.append("-c:v")
+    muxcmd.append("copy")
+    muxcmd.append("-c:a")
+    muxcmd.append("copy")
+    muxcmd.append("-c:s")
+    muxcmd.append("srt")
+    muxcmd.append(f"./downloads/{str(user_id)}/[@yashoswalyo]_softmuxed_video.mkv")
     LOGGER.info("Sub muxing")
     subprocess.call(muxcmd)
     return f"downloads/{str(user_id)}/[@yashoswalyo]_softmuxed_video.mkv"
