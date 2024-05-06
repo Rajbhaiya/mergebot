@@ -116,7 +116,7 @@ def MergeSubNew(filePath: str, subPath: str, user_id, file_list):
     This method is for Merging Video + Subtitle(s) Together.
     Parameters:
     - `filePath`: Path to Video file.
-    - `subPath`: Path to subtitile file.
+    - `subPath`: Path to subtitle file.
     - `user_id`: To get parent directory.
     - `file_list`: List of all input files
     returns: Merged Video File Path
@@ -135,30 +135,29 @@ def MergeSubNew(filePath: str, subPath: str, user_id, file_list):
         muxcmd.append("-i")
         muxcmd.append(i)
     text_filter = 'drawtext=text="@Hanime_Universe on Telegram":fontsize=24:fontcolor=white:box=1:boxcolor=black@0.5:boxborderw=5:x=(w-text_w)/2:y=h-text_h-10:enable="between(t,0,10)"'
-    muxcmd.append("-vf")
-    muxcmd.append(text_filter)
-    muxcmd.append("-map")
-    muxcmd.append("0:v:0")
-    muxcmd.append("-map")
-    muxcmd.append("0:a:?")
-    muxcmd.append("-map")
-    muxcmd.append("0:s:?")
+    filtergraph = f"[0:v]subtitles={subPath}:force_style='Fontsize=24,PrimaryColour=&Hffffff,BorderStyle=1,Outline=0,Shadow=0' [v];[v]{text_filter}[outv]"
+    muxcmd.extend([
+        "-filter_complex", filtergraph,
+        "-map", "[outv]",
+        "-map", "0:a:?",
+        "-map", "0:s:?"
+    ])
     for j in range(1, (len(file_list))):
         muxcmd.append("-map")
         muxcmd.append(f"{j}:s")
         muxcmd.append(f"-metadata:s:s:{subTrack}")
         muxcmd.append(f"title=Track {subTrack+1} - tg-@Hanime_Universe")
         subTrack += 1
-    muxcmd.append("-c:v")
-    muxcmd.append("copy")
-    muxcmd.append("-c:a")
-    muxcmd.append("copy")
-    muxcmd.append("-c:s")
-    muxcmd.append("srt")
-    muxcmd.append(f"./downloads/{str(user_id)}/[@yashoswalyo]_softmuxed_video.mkv")
+    muxcmd.extend([
+        "-c:v", "copy",
+        "-c:a", "copy",
+        "-c:s", "srt",
+        f"./downloads/{str(user_id)}/[@yashoswalyo]_softmuxed_video.mkv"
+    ])
     LOGGER.info("Sub muxing")
     subprocess.call(muxcmd)
     return f"downloads/{str(user_id)}/[@yashoswalyo]_softmuxed_video.mkv"
+    
 def MergeAudio(videoPath: str, files_list: list, user_id):
     LOGGER.info("Generating Mux Command")
     muxcmd = []
